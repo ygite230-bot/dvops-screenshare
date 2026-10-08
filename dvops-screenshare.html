@@ -1,0 +1,174 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DV Ops Screen Share</title>
+<style>
+:root{--bg:#10151c;--p:#18202a;--b:#283341;--t:#e8eef5;--m:#8a98a9;--a:#2f8cff;--g:#2fbf71;--r:#ef4444;--y:#e8a93a;font-family:"Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:var(--bg);color:var(--t);height:100vh}
+button,input,select{font:inherit;color:inherit}button{background:var(--p);border:1px solid var(--b);border-radius:6px;padding:7px 12px;cursor:pointer}button:hover{border-color:var(--a)}button:focus-visible,input:focus-visible{outline:2px solid var(--a)}
+button.pri{background:var(--a);border-color:var(--a);color:#fff;font-weight:600}input{background:#0c1117;border:1px solid var(--b);border-radius:6px;padding:9px 11px;width:100%}
+.m{color:var(--m);font-size:13px}.c{max-width:420px;margin:7vh auto;padding:0 16px}h1{font-size:26px;margin:0 0 4px}
+.tabs{display:flex;gap:6px;margin:18px 0 12px}.tabs button.on{background:var(--a);border-color:var(--a)}
+#ul{max-height:300px;overflow:auto;margin-top:8px;border:1px solid var(--b);border-radius:6px}#ul button{display:flex;justify-content:space-between;width:100%;border:0;border-bottom:1px solid var(--b);border-radius:0}
+.dot{width:10px;height:10px;border-radius:50%;background:#556;display:inline-block;flex:none}.dot.g{background:var(--g)}.dot.r{background:var(--r)}.dot.y{background:var(--y)}
+#agent .c{text-align:center}.big{font-size:18px;padding:16px 28px;margin:18px 0}.bn{background:#3a2a10;border:1px solid var(--y);padding:8px;border-radius:6px;margin-top:14px;font-size:13px}
+.sh{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border:1px solid var(--b);border-radius:6px;margin-top:6px;text-align:left}
+#admin{display:grid;grid-template-rows:auto 1fr;height:100vh}.top{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--b);flex-wrap:wrap}.top .sp{flex:1}
+.main{display:grid;grid-template-columns:250px 1fr;min-height:0}.side{border-right:1px solid var(--b);overflow:auto}.u{display:flex;gap:8px;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid #1e2732}.u:hover,.u.sel{background:var(--p)}.u b{font-weight:500;font-size:13px;flex:1}
+.view{overflow:auto;padding:12px}#grid{display:grid;gap:10px;grid-template-columns:repeat(var(--cols,auto-fill),minmax(380px,1fr))}
+.tile{background:var(--p);border:1px solid var(--b);border-radius:8px;overflow:hidden}.th{padding:7px 10px;display:flex;justify-content:space-between;gap:8px;font-size:13px}.th span{color:var(--m);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tile video{width:100%;aspect-ratio:16/9;background:#000;display:block;object-fit:contain}.tb{display:flex;gap:6px;padding:7px}.tb button{padding:4px 9px;font-size:13px}.tb .rc{background:var(--r);border-color:var(--r)}
+.row{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--b);border-radius:6px;margin-bottom:6px;background:var(--p)}.row div{flex:1}
+#modal{position:fixed;inset:0;background:#000d;display:grid;place-items:center;z-index:9}#modal video{max-width:92vw;max-height:84vh}
+@media(max-width:800px){.main{grid-template-columns:1fr}.side{max-height:160px;border-right:0;border-bottom:1px solid var(--b)}#grid{grid-template-columns:1fr}}
+</style></head><body>
+
+<section id="login"><div class="c"><h1>DV Ops Screen Share</h1><div class="m">Enter your Domain ID to connect. No password needed.</div>
+<div class="tabs"><button class="on" data-m="agent">Agent</button><button data-m="admin">Admin</button></div>
+<div id="pa"><input id="qi" placeholder="Domain ID (e.g. D50612)" autofocus autocomplete="off"><button class="pri" id="qb" style="width:100%;margin-top:10px">Connect</button><div id="qe" class="m" style="color:var(--r);margin-top:8px"></div></div>
+<div id="pd" hidden><div class="m" style="margin-bottom:8px">Yogesh Gite · D50347</div><input id="pw" type="password" placeholder="Admin password"><button class="pri" id="go" style="width:100%;margin-top:10px">Sign in as admin</button><div id="pe" class="m" style="color:var(--r);margin-top:8px"></div></div>
+</div></section>
+
+<section id="agent" hidden><div class="c"><h1 id="aname"></h1><div><span class="dot y" id="sd"></span> <span id="st" class="m">Starting…</span></div>
+<button class="pri big" id="sb">Share my screen</button><div id="sl"></div>
+<div class="bn">Your shared screens are visible to the admin while sharing. Stop anytime.</div>
+<p><button id="sw">Switch user</button></p></div></section>
+
+<section id="admin" hidden>
+<div class="top"><b>DV Ops Live</b><span class="m" id="stat"></span><button data-v="live" class="on">Live</button><button data-v="rec">Recordings</button><button data-v="links">Links</button><span class="sp"></span>
+<label class="m"><input type="checkbox" id="auto" style="width:auto"> Auto-record all</label>
+<select id="cols" style="width:auto;background:var(--p)"><option value="">Auto grid</option><option value="1">1 col</option><option value="2">2 cols</option><option value="3">3 cols</option><option value="4">4 cols</option></select><button id="out">Sign out</button></div>
+<div class="main"><div class="side" id="side"></div><div class="view"><div id="live"><div id="grid"></div><p class="m" id="empty">Waiting for agents to share. Agents appear in the list as soon as they sign in.</p></div><div id="rec" hidden></div><div id="links" hidden></div></div></div></section>
+<div id="modal" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+const U=`D50612|Varsha Sharad Pagare
+D50347|Yogesh Gite
+D50669|Tanishka Jagtap
+D50682|Divya Sandip Bhagwat
+D50823|Mayuri Vijay Godse
+D50825|Mansi Vijay Borade
+D50845|Sakshi Shekhar Salve
+D50844|Darshana Samadhan Khairnar
+D50410|Kanchan Jadhav
+D50473|Priyanka Khairnar
+D50804|Chaitali Kadam
+D50830|Smital Trymbak Jadhav
+D50821|Adesh Kailas Warungse
+D50024|Balaji Satish Raut
+D50829|Ruchita Dnyaneshwar Shinde
+D50330|Akash Deshmukh
+D50350|Anshuman Salve
+D50488|Rahul Punjahari Khandizod
+D50828|Kalyani Dnyaneshwar Shinde
+D50345|Nilesh Khairnar
+D50411|Shital Shewale
+D50241|Chandrashekhar Donde
+D50354|Budhabhushan Salve
+D50786|Janhavi Aswad Nashikkar
+D50691|Rohit Pachuram Yadav
+D50395|Rupali Azade
+D50389|Ganesh Satpute
+D50545|Atharva Gawali
+D50393|Sandeep Pawar
+D50565|Avinash Dilvarsing Valvi
+D50342|Akash Gaikwad
+D50521|Jiya Chavan
+D50408|Amrapali Jadhav
+D50335|Shrikant Salunke
+D50363|Veena Hude`.split('\n').map(l=>{const[i,n]=l.split('|');return{id:i,name:n}});
+const ADMIN='D50347',HASH='f933b22ba70a78546c29854f21542f99ac6e66a60bf3bcf2b52dfa54402e8096',PFX='cvdv-dvops-',AID=PFX+'ADMIN';
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const show=v=>['login','agent','admin'].forEach(x=>$('#'+x).hidden=x!==v);
+const agents=U.filter(u=>u.id!==ADMIN);
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+
+// ---- login
+function enter(){const u=agents.find(x=>x.id===$('#qi').value.trim().toUpperCase());
+ if(!u)return $('#qe').textContent='This Domain ID is not on the team list.';
+ agent(u)}
+$('#qb').onclick=enter;
+$('#qi').onkeydown=e=>{if(e.key==='Enter')enter()};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));$('#pa').hidden=b.dataset.m!=='agent';$('#pd').hidden=b.dataset.m!=='admin';(b.dataset.m==='admin'?$('#pw'):$('#qi')).focus()});
+async function adminLogin(){if(await sha($('#pw').value)===HASH)admin();else $('#pe').textContent='Wrong password'}
+$('#go').onclick=adminLogin;$('#pw').onkeydown=e=>{if(e.key==='Enter')adminLogin()};
+
+// ---- agent
+let me,peer,conn,retry,shares={};
+const setSt=(t,c)=>{$('#st').textContent=t;$('#sd').className='dot '+c};
+function agent(u){me=u;localStorage.uid=u.id;show('agent');$('#aname').textContent=u.name;draw();
+ peer=new Peer(PFX+u.id);peer.on('open',link);peer.on('disconnected',()=>peer.reconnect());
+ peer.on('error',e=>{if(e.type==='unavailable-id')return setSt('This ID is already signed in elsewhere. Close the other tab, then refresh.','r');
+  setSt(e.type==='peer-unavailable'?'Waiting for admin to come online…':'Reconnecting…','y');clearTimeout(retry);retry=setTimeout(link,3000)})}
+function link(){clearTimeout(retry);if(!peer||peer.destroyed)return;conn=peer.connect(AID,{reliable:true});
+ conn.on('open',()=>{setSt('Connected to admin','g');Object.values(shares).forEach(callAdmin)});
+ conn.on('close',()=>{setSt('Reconnecting…','y');clearTimeout(retry);retry=setTimeout(link,2500)})}
+function callAdmin(s){if(!conn||!conn.open)return;try{s.call&&s.call.close()}catch{}s.call=peer.call(AID,s.st,{metadata:{uid:me.id,name:me.name,sid:s.sid,label:s.label}})}
+async function share(){try{const st=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:24}},audio:false});const t=st.getVideoTracks()[0],sid=me.id+'-'+Date.now(),s={sid,st,label:t.label||'Display'};shares[sid]=s;t.onended=()=>stop(sid);callAdmin(s);draw()}catch(e){if(e.name!=='NotAllowedError')alert(e.message)}}
+function stop(sid){const s=shares[sid];if(!s)return;s.st.getTracks().forEach(t=>t.stop());try{s.call&&s.call.close()}catch{}delete shares[sid];draw()}
+function draw(){const k=Object.values(shares);$('#sb').textContent=k.length?'Add another display':'Share my screen';
+ $('#sl').innerHTML=k.map(s=>`<div class="sh"><span><span class="dot r"></span> ${esc(s.label)}</span><button data-s="${s.sid}">Stop</button></div>`).join('')}
+$('#sb').onclick=share;$('#sl').onclick=e=>{const b=e.target.closest('button');if(b)stop(b.dataset.s)};
+$('#sw').onclick=()=>{delete localStorage.uid;location.reload()};
+
+// ---- admin
+const conns={},S={};let fid=null,peerA;
+function admin(){show('admin');peerA=new Peer(AID);
+ peerA.on('connection',c=>{const id=c.peer.slice(PFX.length);c.on('open',()=>{conns[id]=c;users()});c.on('close',()=>{if(conns[id]===c)delete conns[id];users()})});
+ peerA.on('call',call=>{const m=call.metadata;call.answer();call.on('stream',st=>tile(m,st,call));call.on('close',()=>drop(m.sid));call.on('error',()=>drop(m.sid))});
+ peerA.on('disconnected',()=>peerA.reconnect());
+ peerA.on('error',e=>{if(e.type==='unavailable-id')alert('Admin is already signed in on another tab or PC. Close it and refresh.')});
+ users();navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}
+function users(){const cnt=id=>Object.values(S).filter(s=>s.m.uid===id).length;
+ const st=u=>cnt(u.id)?2:conns[u.id]?1:0;
+ const L=[...agents].sort((a,b)=>st(b)-st(a)||a.name.localeCompare(b.name));
+ $('#side').innerHTML=L.map(u=>`<div class="u${fid===u.id?' sel':''}" data-id="${u.id}"><span class="dot ${['','g','r'][st(u)]}"></span><b>${esc(u.name)}</b><span class="m">${cnt(u.id)||''}</span></div>`).join('');
+ $('#stat').textContent=`${Object.keys(conns).length} online · ${new Set(Object.values(S).map(s=>s.m.uid)).size} sharing · ${Object.keys(S).length} screens`;
+ $('#empty').hidden=!!Object.keys(S).length;filter()}
+function filter(){Object.values(S).forEach(s=>s.el.hidden=!!fid&&s.m.uid!==fid)}
+$('#side').onclick=e=>{const u=e.target.closest('.u');if(u){fid=fid===u.dataset.id?null:u.dataset.id;users()}};
+function tile(m,st,call){if(S[m.sid])drop(m.sid);const el=document.createElement('div');el.className='tile';el.dataset.sid=m.sid;
+ el.innerHTML=`<div class="th"><b>${esc(m.name)}</b><span>${m.uid} · ${esc(m.label)}</span></div><video autoplay muted playsinline></video><div class="tb"><button data-a="pop">Pop out</button><button data-a="rec">Record</button><button data-a="fs">Fullscreen</button></div>`;
+ el.querySelector('video').srcObject=st;S[m.sid]={m,st,call,el,rec:null};$('#grid').append(el);users();if($('#auto').checked)toggleRec(m.sid)}
+function drop(sid){const s=S[sid];if(!s)return;try{s.rec&&s.rec.stop()}catch{}s.el.remove();delete S[sid];users()}
+$('#grid').onclick=e=>{const b=e.target.closest('button');if(!b)return;const sid=b.closest('.tile').dataset.sid,a=b.dataset.a;
+ if(a==='pop')pop(sid);else if(a==='rec')toggleRec(sid);else b.closest('.tile').querySelector('video').requestFullscreen()};
+function pop(sid){const s=S[sid];const w=window.open('','p'+sid,'width=960,height=580');if(!w)return alert('Allow pop-ups for this site, then try again.');
+ w.document.title=s.m.name+' · '+s.m.label;w.document.body.style.cssText='margin:0;background:#000';w.document.body.innerHTML='<video autoplay muted playsinline style="width:100vw;height:100vh;object-fit:contain"></video>';w.document.querySelector('video').srcObject=s.st}
+function toggleRec(sid){const s=S[sid];if(!s)return;const btn=s.el.querySelector('[data-a=rec]');
+ if(s.rec){s.rec.stop();return}
+ const mt=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+ const ch=[],t0=Date.now(),r=new MediaRecorder(s.st,{mimeType:mt,videoBitsPerSecond:2500000});
+ r.ondataavailable=e=>e.data.size&&ch.push(e.data);
+ r.onstop=async()=>{s.rec=null;btn.textContent='Record';btn.classList.remove('rc');const blob=new Blob(ch,{type:'video/webm'});
+  await dbPut({id:crypto.randomUUID(),uid:s.m.uid,name:s.m.name,label:s.m.label,at:t0,dur:Date.now()-t0,size:blob.size,blob});if(!$('#rec').hidden)recs()};
+ r.start(5000);s.rec=r;btn.textContent='Stop recording';btn.classList.add('rc')}
+
+// ---- recordings (saved in this browser via IndexedDB)
+const db=new Promise((ok,no)=>{const q=indexedDB.open('dvss',1);q.onupgradeneeded=()=>q.result.createObjectStore('r',{keyPath:'id'});q.onsuccess=()=>ok(q.result);q.onerror=no});
+const tx=async(m,f)=>{const d=await db;return new Promise((ok,no)=>{const t=d.transaction('r',m),q=f(t.objectStore('r'));t.oncomplete=()=>ok(q&&q.result);t.onerror=no})};
+const dbPut=o=>tx('readwrite',s=>s.put(o)),dbAll=()=>tx('readonly',s=>s.getAll()),dbDel=id=>tx('readwrite',s=>s.delete(id));
+async function recs(){const a=(await dbAll()).sort((x,y)=>y.at-x.at);
+ $('#rec').innerHTML=a.map(r=>`<div class="row" data-id="${r.id}"><div><b>${esc(r.name)}</b> <span class="m">${r.uid} · ${esc(r.label)}</span><br><span class="m">${new Date(r.at).toLocaleString()} · ${Math.round(r.dur/1000)}s · ${(r.size/1048576).toFixed(1)} MB</span></div><button data-a="play">Play</button><button data-a="dl">Download</button><button data-a="del">Delete</button></div>`).join('')||'<p class="m">No recordings yet. Press Record on any screen, or tick Auto-record all.</p>'}
+$('#rec').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const id=b.closest('.row').dataset.id,r=(await dbAll()).find(x=>x.id===id),a=b.dataset.a;
+ if(a==='del'){if(confirm('Delete this recording?')){await dbDel(id);recs()}}
+ else{const u=URL.createObjectURL(r.blob);if(a==='dl'){const l=document.createElement('a');l.href=u;l.download=`${r.name.replace(/\s+/g,'_')}_${new Date(r.at).toISOString().slice(0,19).replace(/[:T]/g,'-')}.webm`;l.click()}
+  else{$('#modal').innerHTML=`<video src="${u}" controls autoplay></video>`;$('#modal').hidden=false}}};
+$('#modal').onclick=e=>{if(e.target.id==='modal'){$('#modal').hidden=true;$('#modal').innerHTML=''}};
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x===b));$('#live').hidden=b.dataset.v!=='live';$('#rec').hidden=b.dataset.v!=='rec';$('#links').hidden=b.dataset.v!=='links';if(b.dataset.v==='rec')recs();if(b.dataset.v==='links')links()});
+$('#cols').onchange=e=>$('#grid').style.setProperty('--cols',e.target.value?`${e.target.value}`:'auto-fill');
+$('#out').onclick=()=>location.reload();
+
+// ---- connect links
+const lk=id=>location.origin+location.pathname+(id?'?u='+id:'');
+const cp=async(t,b)=>{try{await navigator.clipboard.writeText(t)}catch{prompt('Copy:',t)}const o=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=o,1200)};
+function links(){$('#links').innerHTML=`${location.protocol==='file:'?'<p class="m" style="color:var(--y)">Host this file online (GitHub Pages, Netlify or Vercel) first. Links made from a local file will not work on other PCs.</p>':''}
+<div class="row"><div><b>General link</b> <span class="m">agents enter their Domain ID</span><br><span class="m">${esc(lk())}</span></div><button id="lg">Copy link</button></div>
+<div style="display:flex;gap:8px;margin:10px 0"><input id="lq" placeholder="Search agent"><button id="la">Copy all</button><button id="lc">Download CSV</button></div><div id="lr"></div>`;
+ lrows();$('#lq').oninput=lrows;$('#lg').onclick=e=>cp(lk(),e.target);
+ $('#la').onclick=e=>cp(agents.map(u=>`${u.name} (${u.id}): ${lk(u.id)}`).join('\n'),e.target);
+ $('#lc').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['Name,Domain ID,Link\n'+agents.map(u=>`"${u.name}",${u.id},${lk(u.id)}`).join('\n')],{type:'text/csv'}));a.download='screenshare-links.csv';a.click()}}
+function lrows(){const q=$('#lq').value.toLowerCase();$('#lr').innerHTML=agents.filter(u=>(u.name+u.id).toLowerCase().includes(q)).map(u=>`<div class="row"><div><b>${esc(u.name)}</b> <span class="m">${u.id}</span><br><span class="m">${esc(lk(u.id))}</span></div><button data-id="${u.id}">Copy link</button></div>`).join('')}
+document.addEventListener('click',e=>{const b=e.target.closest('#lr button');if(b)cp(lk(b.dataset.id),b)});
+
+// ---- auto sign-in for agents (remembered, or ?u=D50612)
+const au=new URLSearchParams(location.search).get('u')||localStorage.uid,f=agents.find(u=>u.id===au);if(f)agent(f);
+</script></body></html>
